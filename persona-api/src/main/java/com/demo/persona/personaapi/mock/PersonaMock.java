@@ -2,95 +2,97 @@ package com.demo.persona.personaapi.mock;
 
 
 import com.demo.persona.personaapi.entity.Persona;
+import com.demo.persona.personaapi.exception.DuplicateKeyException;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Repository
 public class PersonaMock {
-	private List<Persona> personaMock;
+	private List<Persona> datos;
 	private int id;
 		
 	public PersonaMock() {
-		personaMock = new ArrayList<>();
+		datos = new ArrayList<>();
 		id = 1;
 	}
 	
 	public List<Persona> listar() {
-		return personaMock;
+		return datos;
 	}
 
-	public Persona crear(Persona persona) throws Exception {
-		if(buscarPorId(persona.getId()) != null) {
-			System.out.println("Esa persona ya existe");
-			throw new Exception("Registro ya existente.");
+	public Persona crear(Persona dato) throws DuplicateKeyException {
+		if(registroYaExiste(dato)) {
+			throw new DuplicateKeyException();
 		}
 		else {
-			persona.setId(id);
-			personaMock.add(persona);
+			dato.setId(id);
+			datos.add(dato);
 			id++;
 			
-			return persona;
+			return dato;
 		}
+	}
 	
+	private boolean registroYaExiste(Persona dato) {
+		return buscarPorId(dato.getId()) != null || buscarPorEmail(dato.getEmail()) != null;
+	}
+	
+	public Persona buscarPorEmail(String email) {
+		Persona dato = null;
+		
+		for (int i = 0; i < datos.size(); i++) {
+			if(datos.get(i).getEmail().compareToIgnoreCase(email) == 0) {
+				dato = datos.get(i);
+			}				
+		}
+		
+		return dato;
 	}
 
-	public boolean borrar(Integer id) {
-		Persona persona = buscarPorId(id);
+	public void borrar(Integer id) {
+		Persona dato = buscarPorId(id);
 		
-		if(persona != null) {
-			personaMock.remove(persona);			
+		if(dato != null) {
+			datos.remove(dato);			
 		}
 		else {
-			System.out.println("Persona no encontrada");
+			throw new NoSuchElementException();
 		}
-		
-		return persona != null;
 	}
 	
 	public Persona buscarPorId(Integer id) {
-		for (int i = 0; personaMock != null && i < personaMock.size(); i++) {
-			if(personaMock.get(i).getId().equals(id)) {
-				return personaMock.get(i);
+		for (int i = 0; datos != null && i < datos.size(); i++) {
+			if(datos.get(i).getId().equals(id)) {
+				return datos.get(i);
 			}				
 		}
 				
 		return null;
 	}
 
-	public void modificar(Persona persona) {
+	public void modificar(Persona dato) {
 		boolean registroModificado = false;
-		for (int i = 0; !registroModificado && i < personaMock.size(); i++) {
-			registroModificado = personaMock.get(i).getId().equals(persona.getId());			
+		for (int i = 0; !registroModificado && i < datos.size(); i++) {
+			registroModificado = datos.get(i).getId().equals(dato.getId());			
 			if(registroModificado) {
-				personaMock.set(i, persona);
+				datos.set(i, dato);
 			}				
 		}
 		
 		if(!registroModificado) {
-			System.out.println("Persona no encontrada");
+			throw new NoSuchElementException();
 		}
 	}
 
 	public Persona listarPorId(Integer id) {
 		Persona persona = null;
 		
-		for (int i = 0; i < personaMock.size(); i++) {
-			if(personaMock.get(i).getId().equals(id)) {
-				persona = personaMock.get(i);
-			}				
-		}
-		
-		return persona;
-	}
-
-	public Persona obtenerPersonaPorEmail(String email) {
-		Persona persona = null;
-		
-		for (int i = 0; i < personaMock.size(); i++) {
-			if(personaMock.get(i).getEmail().equals(email)) {
-				persona = personaMock.get(i);
+		for (int i = 0; i < datos.size(); i++) {
+			if(datos.get(i).getId().equals(id)) {
+				persona = datos.get(i);
 			}				
 		}
 		

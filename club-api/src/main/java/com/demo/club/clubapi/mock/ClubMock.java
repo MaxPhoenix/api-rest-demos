@@ -1,80 +1,101 @@
 package com.demo.club.clubapi.mock;
 
 import com.demo.club.clubapi.entity.Club;
+import com.demo.club.clubapi.exception.DuplicateKeyException;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Repository
 public class ClubMock {
-	private List<Club> clubMock;
+	private List<Club> datos;
 	private int id;
 	
 	public ClubMock() {
-		clubMock = new ArrayList<>();
+		datos = new ArrayList<>();
 		id = 1;
 	}
 		
-	public Club crear(Club club) throws Exception {
-		if(buscarPorId(club.getId()) != null) {
-			System.out.println("Esa club ya existe");
-			throw new Exception("Registro ya existente.");
-		}
-		else {
-			club.setId(id);
-			clubMock.add(club);
-			id++;
-		}
-		return club;		
-	}
-	
 	public List<Club> listar() {
-		return clubMock;
+		return datos;
 	}
 
-	public void modificar(Club club) {
-		boolean registroModificado = false;
-		for (int i = 0; !registroModificado && i < clubMock.size(); i++) {
-			registroModificado = clubMock.get(i).getId().equals(club.getId());			
-			if(registroModificado) {
-				
-				if(club.getNombre() != null && !club.getNombre().trim().isEmpty()) {
-					clubMock.get(i).setNombre(club.getNombre());					
-				}
-				
-				if(club.getCategoria() != null) {
-					clubMock.get(i).setCategoria(club.getCategoria());	
-				}								
+	public Club crear(Club dato) throws DuplicateKeyException {
+		if(registroYaExiste(dato)) {
+			throw new DuplicateKeyException();
+		}
+		else {
+			dato.setId(id);
+			datos.add(dato);
+			id++;
+			
+			return dato;
+		}
+	}
+	
+	private boolean registroYaExiste(Club dato) {
+		return buscarPorId(dato.getId()) != null || buscarPorNombre(dato.getNombre()) != null;
+	}
+	
+	public Club buscarPorNombre(String email) {
+		Club dato = null;
+		
+		for (int i = 0; i < datos.size(); i++) {
+			if(datos.get(i).getNombre().compareToIgnoreCase(email) == 0) {
+				dato = datos.get(i);
 			}				
 		}
 		
-		if(!registroModificado) {
-			System.out.println("club no encontrado");
-		}
+		return dato;
 	}
 
-	public boolean borrar(Integer id) {
-		Club club = buscarPorId(id);
+	public void borrar(Integer id) {
+		Club dato = buscarPorId(id);
 		
-		if(club != null) {
-			clubMock.remove(club);			
+		if(dato != null) {
+			datos.remove(dato);			
 		}
 		else {
-			System.out.println("club no encontrado");
+			throw new NoSuchElementException();
 		}
-		
-		return club != null;
 	}
 	
 	public Club buscarPorId(Integer id) {
-		for (int i = 0; clubMock != null && i < clubMock.size(); i++) {
-			if(clubMock.get(i).getId().equals(id)) {
-				return clubMock.get(i);
+		for (int i = 0; datos != null && i < datos.size(); i++) {
+			if(datos.get(i).getId().equals(id)) {
+				return datos.get(i);
 			}				
 		}
 				
 		return null;
+	}
+
+	public void modificar(Club dato) {
+		boolean registroModificado = false;
+		for (int i = 0; !registroModificado && i < datos.size(); i++) {
+			registroModificado = datos.get(i).getId().equals(dato.getId());			
+			if(registroModificado) {
+				datos.set(i, dato);
+			}				
+		}
+		
+		if(!registroModificado) {
+			throw new NoSuchElementException();
+		}
+	}
+
+	public Club listarPorId(Integer id) {
+		Club persona = null;
+		
+		for (int i = 0; i < datos.size(); i++) {
+			if(datos.get(i).getId().equals(id)) {
+				persona = datos.get(i);
+			}				
+		}
+		
+		return persona;
 	}
 	
 }

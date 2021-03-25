@@ -1,85 +1,101 @@
 package com.demo.pelicula.peliculaapi.mock;
 
 import com.demo.pelicula.peliculaapi.entity.Pelicula;
+import com.demo.pelicula.peliculaapi.exception.DuplicateKeyException;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Repository
 public class PeliculaMock {
-	private List<Pelicula> peliculaMock;
+	private List<Pelicula> datos;
 	private int id;
 		
 	public PeliculaMock() {
-		peliculaMock = new ArrayList<>();
+		datos = new ArrayList<>();
 		id = 1;
 	}
 	
 	public List<Pelicula> listar() {
-		return peliculaMock;
+		return datos;
 	}
 
-	public Pelicula crear(Pelicula pelicula) throws Exception {
-		if(buscarPorId(pelicula.getId()) != null) {
-			System.out.println("Esa pelicula ya existe");
-			throw new Exception("Registro ya existente.");
+	public Pelicula crear(Pelicula dato) throws DuplicateKeyException {
+		if(registroYaExiste(dato)) {
+			throw new DuplicateKeyException();
 		}
 		else {
-			pelicula.setId(id);
-			peliculaMock.add(pelicula);
-			id++;			
+			dato.setId(id);
+			datos.add(dato);
+			id++;
+			
+			return dato;
 		}
-		return pelicula;		
+	}
+	
+	private boolean registroYaExiste(Pelicula dato) {
+		return buscarPorId(dato.getId()) != null || buscarPorNombre(dato.getNombre()) != null;
+	}
+	
+	public Pelicula buscarPorNombre(String nombre) {
+		Pelicula dato = null;
+		
+		for (int i = 0; i < datos.size(); i++) {
+			if(datos.get(i).getNombre().compareToIgnoreCase(nombre) == 0) {
+				dato = datos.get(i);
+			}				
+		}
+		
+		return dato;
 	}
 
-	public boolean borrar(Integer id) {
-		Pelicula pelicula = buscarPorId(id);
+	public void borrar(Integer id) {
+		Pelicula dato = buscarPorId(id);
 		
-		if(pelicula != null) {
-			peliculaMock.remove(pelicula);			
+		if(dato != null) {
+			datos.remove(dato);			
 		}
 		else {
-			System.out.println("Pelicula no encontrada");
+			throw new NoSuchElementException();
 		}
-		
-		return pelicula != null;
 	}
 	
 	public Pelicula buscarPorId(Integer id) {
-		for (int i = 0; peliculaMock != null && i < peliculaMock.size(); i++) {
-			if(peliculaMock.get(i).getId().equals(id)) {
-				return peliculaMock.get(i);
+		for (int i = 0; datos != null && i < datos.size(); i++) {
+			if(datos.get(i).getId().equals(id)) {
+				return datos.get(i);
 			}				
 		}
 				
 		return null;
 	}
 
-	public void modificar(Pelicula pelicula) {
+	public void modificar(Pelicula dato) {
 		boolean registroModificado = false;
-		for (int i = 0; !registroModificado && i < peliculaMock.size(); i++) {
-			registroModificado = peliculaMock.get(i).getId().equals(pelicula.getId());			
+		for (int i = 0; !registroModificado && i < datos.size(); i++) {
+			registroModificado = datos.get(i).getId().equals(dato.getId());			
 			if(registroModificado) {
-				peliculaMock.set(i, pelicula);
+				datos.set(i, dato);
 			}				
 		}
 		
 		if(!registroModificado) {
-			System.out.println("Pelicula no encontrada");
+			throw new NoSuchElementException();
 		}
 	}
 
 	public Pelicula listarPorId(Integer id) {
-		Pelicula pelicula = null;
+		Pelicula persona = null;
 		
-		for (int i = 0; i < peliculaMock.size(); i++) {
-			if(peliculaMock.get(i).getId().equals(id)) {
-				pelicula = peliculaMock.get(i);
+		for (int i = 0; i < datos.size(); i++) {
+			if(datos.get(i).getId().equals(id)) {
+				persona = datos.get(i);
 			}				
 		}
 		
-		return pelicula;
+		return persona;
 	}
 
 }
